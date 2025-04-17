@@ -10,6 +10,18 @@ python -m sglang.bench_offline_throughput --model-path meta-llama/Meta-Llama-3.1
 python -m sglang.bench_offline_throughput --model-path meta-llama/Meta-Llama-3.1-8B-Instruct --dataset-name random --random-input 1024 --random-output 1024
 """
 
+
+#modify bench_offline_throughput.py to add delete_cache=True in the generate function,test the function of delete_cache
+
+#modify the --model-path to your model path
+"""
+python -m sglang.bench_delete_cache \
+--model-path /workspace/Llama-3.1-8B-Instruct \
+--dataset-name random \
+--random-input-len 1024 \
+--random-output-len 1024 \
+--num-prompts 1
+"""
 import argparse
 import dataclasses
 import json
@@ -224,16 +236,20 @@ def throughput_test_once(
         "total_throughput": -1,
     }
 
-    prompt = [r[0] for r in reqs]
+    #prompt = [r[0] for r in reqs]
+    prompt1 = ["The weather today is sunny. I will go to the park. "]
+    prompt2 = ["The weather today is rainy. I will stay at home. "]
+
+
     sampling_params = [
         {
             "temperature": 0,
-            "max_new_tokens": r[2],
+            "max_new_tokens": 0,
             "ignore_eos": ignore_eos,
             **extra_request_body,
         }
-        for r in reqs
     ]
+
 
     if profile:
         assert (
@@ -242,17 +258,17 @@ def throughput_test_once(
         os.makedirs(os.environ["SGLANG_TORCH_PROFILER_DIR"], exist_ok=True)
         backend.start_profile()
 
+
     st = time.perf_counter()
-    gen_out = backend.generate(prompt=prompt, sampling_params=sampling_params)
 
-
-
-    #attach outputs to prompts
-    new_prompts = create_prompt(prompt, gen_out, 1)
-    tmp_out = backend.generate(prompt=new_prompts,delete_cache=True)
+    print(f"{prompt1}\n")
+    gen_out = backend.generate(prompt=prompt1, sampling_params=sampling_params)
+    #if delete_cache is false, the result will be different
+    backend.generate(prompt=prompt1, delete_cache=True)
+    print(f"{prompt2}\n")
+    gen_out2 = backend.generate(prompt=prompt2, sampling_params=sampling_params)
     
 
-    tmp_out2 = backend.generate(prompt=prompt, sampling_params=sampling_params)
     latency = time.perf_counter() - st
 
     if profile:

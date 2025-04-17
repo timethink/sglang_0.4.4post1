@@ -248,7 +248,7 @@ class GenerateReqInput:
                 else None
             ),
             return_hidden_states=self.return_hidden_states,
-            #添加删除cache,这里不需要取i
+            #add  delete_cache
             delete_cache=self.delete_cache 
         )
 
@@ -292,7 +292,7 @@ class TokenizedGenerateReqInput:
     # Whether to return hidden states
     return_hidden_states: bool = False
 
-    #添加删除cache
+    #add  delete_cache arg
     delete_cache: bool = False
 
 

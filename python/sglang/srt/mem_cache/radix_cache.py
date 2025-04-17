@@ -199,13 +199,14 @@ class RadixCache(BasePrefixCache):
         # Remove req slot release the cache lock
         self.req_to_token_pool.free(req.req_pool_idx)
         self.dec_lock_ref(req.last_node)
-        #添加删除cache
+        #add delete_cache arg
         if req.delete_cache:
-            #获取新的Last_node
+            #get the new prefix length
             new_indices, new_last_node = self.match_prefix(token_ids)
-            #删除tree_cache的部分
+            #delete the cache of the new last node
             self._delete_cache(new_last_node)
-            #打印当前tree_cache的大小
+        #add tree log when the request is finished
+        self.pretty_print()
 
     def cache_unfinished_req(self, req: Req):
         """Cache request when it is unfinished."""
@@ -424,7 +425,7 @@ class RadixCache(BasePrefixCache):
         del node.parent.children[k]
         self.evictable_size_ -= len(node.key)
 
-    #添加删除cache，从node递归地向上删除，直到parent为None或者parent的lock_ref不为0或者parent的children不为0
+    #add _delete_cache function to delete the node recursively
     def _delete_cache(self, node):
         if node == self.root_node:
             #print("meet root node, stop delete")
@@ -434,34 +435,18 @@ class RadixCache(BasePrefixCache):
                 f"Error: {node.key} has lock_ref {node.lock_ref}, cannot delete"
             )
             return
+        #judge if the node is a leaf node, if not, return
+        if node.children:
+            #print(f"{node.key} is not a leaf node, return")
+            return
         self.token_to_kv_pool_allocator.free(node.value)
         parent_node = node.parent
-        #添加，递归删除node的所有子节点,但是存疑，如果node的子节点也有lock_ref>0呢，这样大概率会发生内存泄漏
-        self._delete_node_children(node)
-
         self._delete_leaf(node)
         #print(
         #   f"delete {node.key} from cache, evictable size: {self.evictable_size_}")
-        if len(parent_node.children) == 0:
+        if not parent_node.children:
             self._delete_cache(parent_node)
 
-    #添加，删除node的所有后代节点
-    # 这个函数会递归地删除node的所有子节点
-    def _delete_node_children(self, node):
-        # Recursively delete all children of the node
-        deleted_child_node = []
-        for k, v in node.children.items():
-            if v.lock_ref > 0:
-                print(
-                    f"Error: {v.key} has lock_ref {v.lock_ref}, cannot delete"
-                )
-                continue
-            self.token_to_kv_pool_allocator.free(v.value)
-            self.evictable_size_ -= len(v.key)
-            self._delete_node_children(v)
-            deleted_child_node.append(v)
-        for child in deleted_child_node:
-            del child
             
             
 
