@@ -250,6 +250,8 @@ class Req:
         custom_logit_processor: Optional[str] = None,
         return_hidden_states: bool = False,
         eos_token_ids: Optional[Set[int]] = None,
+        #添加删除cache
+        delete_cache: bool = False,
     ):
         # Input and output info
         self.rid = rid
@@ -267,6 +269,9 @@ class Req:
         self.session_id = session_id
         self.input_embeds = input_embeds
 
+        #添加删除cache
+        self.delete_cache = delete_cache
+
         # Sampling info
         if isinstance(sampling_params.custom_params, dict):
             sampling_params = copy.copy(sampling_params)
@@ -274,6 +279,13 @@ class Req:
                 "__req__": self
             }
         self.sampling_params = sampling_params
+        #添加删除cache
+        #如果delete_cache为True，则设置sampling_params的max_new_tokens为0
+        if self.delete_cache:
+            self.sampling_params.max_new_tokens = 0
+            #设置sampling_params的stop_token_ids为None
+            self.sampling_params.stop_token_ids = None
+
         self.custom_logit_processor = custom_logit_processor
         self.return_hidden_states = return_hidden_states
 

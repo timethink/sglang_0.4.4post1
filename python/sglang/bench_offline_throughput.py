@@ -190,6 +190,19 @@ class BenchArgs:
         attrs = [attr.name for attr in dataclasses.fields(cls)]
         return cls(**{attr: getattr(args, attr) for attr in attrs})
 
+def create_prompt(prompts, outputs, n):
+    if len(prompts) * n!= len(outputs):
+        raise ValueError("The number of prompts and outputs does not match.")
+    new_prompts = []
+    i = 0
+    for prompt in prompts:
+        new_prompt = prompt
+        for j in range(n):
+            output = outputs[i*n+j]
+            new_prompt += output["text"]
+        new_prompts.append(new_prompt)
+        i += 1
+    return new_prompts 
 
 def throughput_test_once(
     backend_name: str,
@@ -231,6 +244,17 @@ def throughput_test_once(
 
     st = time.perf_counter()
     gen_out = backend.generate(prompt=prompt, sampling_params=sampling_params)
+
+
+
+    #将output和对应的prompt拼接
+    new_prompts = create_prompt(prompt, gen_out, 1)
+    tmp_out = backend.generate(prompt=new_prompts,delete_cache=True)
+    
+    #不拼接，直接删除prompt对应的子节点也可
+    #tmp_out = backend.generate(prompt=prompt,delete_cache=True)
+
+    tmp_out2 = backend.generate(prompt=prompt, sampling_params=sampling_params)
     latency = time.perf_counter() - st
 
     if profile:
@@ -336,7 +360,7 @@ def throughput_test(
         tokenizer=tokenizer,
         dataset_path=bench_args.dataset_path,
     )
-
+    """
     # Warm up
     if not bench_args.skip_warmup:
         logging.info("\nWarmup...")
@@ -349,7 +373,7 @@ def throughput_test(
             profile=False,
         )
         time.sleep(0.5)
-
+    """
     logging.info("\nBenchmark...")
     result = throughput_test_once(
         backend_name=bench_args.backend,

@@ -129,6 +129,8 @@ class Engine:
         custom_logit_processor: Optional[Union[List[str], str]] = None,
         return_hidden_states: bool = False,
         stream: bool = False,
+         #添加删除
+        delete_cache: Optional[bool] = False,
     ) -> Union[Dict, Iterator[Dict]]:
         """
         The arguments of this function is the same as `sglang/srt/managers/io_struct.py::GenerateReqInput`.
@@ -152,6 +154,8 @@ class Engine:
             custom_logit_processor=custom_logit_processor,
             return_hidden_states=return_hidden_states,
             stream=stream,
+            #添加删除cache
+            delete_cache=delete_cache,
         )
         loop = asyncio.get_event_loop()
         generator = self.tokenizer_manager.generate_request(obj, None)
