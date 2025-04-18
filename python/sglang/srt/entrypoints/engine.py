@@ -129,7 +129,7 @@ class Engine:
         custom_logit_processor: Optional[Union[List[str], str]] = None,
         return_hidden_states: bool = False,
         stream: bool = False,
-        #add delete cache arg
+        #add delete cache arg, if True, the matching cache of input prompt will be deleted
         delete_cache: Optional[bool] = False,
     ) -> Union[Dict, Iterator[Dict]]:
         """
@@ -154,7 +154,6 @@ class Engine:
             custom_logit_processor=custom_logit_processor,
             return_hidden_states=return_hidden_states,
             stream=stream,
-            #add delete cache arg
             delete_cache=delete_cache,
         )
         loop = asyncio.get_event_loop()

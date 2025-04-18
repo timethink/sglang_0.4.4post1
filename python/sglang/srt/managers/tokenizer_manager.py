@@ -431,7 +431,6 @@ class TokenizerManager:
                 session_params=session_params,
                 custom_logit_processor=obj.custom_logit_processor,
                 return_hidden_states=obj.return_hidden_states,
-                #add delete_cache
                 delete_cache = obj.delete_cache,
             )
         elif isinstance(obj, EmbeddingReqInput):

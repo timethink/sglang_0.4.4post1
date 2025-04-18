@@ -250,7 +250,6 @@ class Req:
         custom_logit_processor: Optional[str] = None,
         return_hidden_states: bool = False,
         eos_token_ids: Optional[Set[int]] = None,
-        #add delete cache arg
         delete_cache: bool = False,
     ):
         # Input and output info
@@ -269,7 +268,6 @@ class Req:
         self.session_id = session_id
         self.input_embeds = input_embeds
 
-        #add delete cache arg
         self.delete_cache = delete_cache
 
         # Sampling info
@@ -279,12 +277,9 @@ class Req:
                 "__req__": self
             }
         self.sampling_params = sampling_params
-        #add delete cache arg
-        #if delete_cache is True, set sampling_params.max_new_tokens = 0
+        #if delete_cache is True, set sampling_params.max_new_tokens = 0 because we don't need to generate new tokens
         if self.delete_cache:
             self.sampling_params.max_new_tokens = 0
-            #set stop_token_ids = None
-            self.sampling_params.stop_token_ids = None
 
         self.custom_logit_processor = custom_logit_processor
         self.return_hidden_states = return_hidden_states

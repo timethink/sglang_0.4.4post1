@@ -195,18 +195,17 @@ class RadixCache(BasePrefixCache):
         self.token_to_kv_pool_allocator.free(
             kv_indices[len(req.prefix_indices) : new_prefix_len]
         )
-
         # Remove req slot release the cache lock
         self.req_to_token_pool.free(req.req_pool_idx)
         self.dec_lock_ref(req.last_node)
-        #add delete_cache arg
+        # if delete_cache is set, we need to delete the cache of the req
         if req.delete_cache:
-            #get the new prefix length
-            new_indices, new_last_node = self.match_prefix(token_ids)
-            #delete the cache of the new last node
-            self._delete_cache(new_last_node)
-        #add tree log when the request is finished
-        self.pretty_print()
+            _, new_last_node = self.match_prefix(token_ids)
+            node = new_last_node
+            while node != self.root_node and node.lock_ref == 0 and len(node.children) == 0:
+                self.token_to_kv_pool_allocator.free(node.value)
+                self._delete_leaf(node)
+                node = node.parent
 
     def cache_unfinished_req(self, req: Req):
         """Cache request when it is unfinished."""
@@ -424,31 +423,6 @@ class RadixCache(BasePrefixCache):
                 break
         del node.parent.children[k]
         self.evictable_size_ -= len(node.key)
-
-    #add _delete_cache function to delete the node recursively
-    def _delete_cache(self, node):
-        if node == self.root_node:
-            #print("meet root node, stop delete")
-            return
-        if node.lock_ref > 0:
-            print(
-                f"Error: {node.key} has lock_ref {node.lock_ref}, cannot delete"
-            )
-            return
-        #judge if the node is a leaf node, if not, return
-        if node.children:
-            #print(f"{node.key} is not a leaf node, return")
-            return
-        self.token_to_kv_pool_allocator.free(node.value)
-        parent_node = node.parent
-        self._delete_leaf(node)
-        #print(
-        #   f"delete {node.key} from cache, evictable size: {self.evictable_size_}")
-        if not parent_node.children:
-            self._delete_cache(parent_node)
-
-            
-            
 
     def _total_size_helper(self):
         total_size = 0

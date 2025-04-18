@@ -645,7 +645,6 @@ class Scheduler(SchedulerOutputProcessorMixin):
                 custom_logit_processor=custom_logit_processor,
                 return_hidden_states=recv_req.return_hidden_states,
                 eos_token_ids=self.model_config.hf_eos_token_id,
-                #add delete_cache to the request
                 delete_cache = recv_req.delete_cache,
             )
             req.tokenizer = self.tokenizer

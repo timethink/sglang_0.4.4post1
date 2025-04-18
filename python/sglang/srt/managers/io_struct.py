@@ -248,7 +248,6 @@ class GenerateReqInput:
                 else None
             ),
             return_hidden_states=self.return_hidden_states,
-            #add  delete_cache
             delete_cache=self.delete_cache 
         )
 
@@ -292,7 +291,7 @@ class TokenizedGenerateReqInput:
     # Whether to return hidden states
     return_hidden_states: bool = False
 
-    #add  delete_cache arg
+    # Whether to delete the cache
     delete_cache: bool = False
 
 

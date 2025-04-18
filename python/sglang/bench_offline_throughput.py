@@ -250,8 +250,6 @@ def throughput_test_once(
     #attach outputs to prompts
     new_prompts = create_prompt(prompt, gen_out, 1)
     tmp_out = backend.generate(prompt=new_prompts,delete_cache=True)
-    
-
     tmp_out2 = backend.generate(prompt=prompt, sampling_params=sampling_params)
     latency = time.perf_counter() - st
 
