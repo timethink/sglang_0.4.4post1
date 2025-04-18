@@ -191,6 +191,7 @@ class Engine:
         lora_path: Optional[List[Optional[str]]] = None,
         custom_logit_processor: Optional[Union[List[str], str]] = None,
         stream: bool = False,
+        delete_cache: Optional[bool] = False,
     ) -> Union[Dict, AsyncIterator[Dict]]:
         """
         The arguments of this function is the same as `sglang/srt/managers/io_struct.py::GenerateReqInput`.
@@ -208,6 +209,7 @@ class Engine:
             lora_path=lora_path,
             stream=stream,
             custom_logit_processor=custom_logit_processor,
+            delete_cache=delete_cache,
         )
         generator = self.tokenizer_manager.generate_request(obj, None)
 
