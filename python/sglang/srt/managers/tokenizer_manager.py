@@ -571,9 +571,10 @@ class TokenizerManager:
         is_stream = hasattr(obj, "stream") and obj.stream
         if not is_stream:
             outputs = await asyncio.gather(*(gen.__anext__() for gen in generators))
-            for i in range(batch_size):
-                for j in range(obj.parallel_sample_num):
-                    outputs[i * obj.parallel_sample_num + j]["meta_info"]["cached_tokens"] = tmp_cached_tokens[i]
+            if getattr(obj, "parallel_sample_num", 1) > 1:
+                for i in range(batch_size):
+                    for j in range(obj.parallel_sample_num):
+                        outputs[i * obj.parallel_sample_num + j]["meta_info"]["cached_tokens"] = tmp_cached_tokens[i]
             yield outputs
         else:
             rid_to_index = {rid: i for i, rid in enumerate(rids)}

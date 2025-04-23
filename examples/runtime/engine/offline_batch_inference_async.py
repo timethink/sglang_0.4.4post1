@@ -34,27 +34,50 @@ async def run_server(server_args):
         "The president of the United States is",
         "The capital of France is",
         "The future of AI is",
-    ] * 100
+    ] 
 
     # Create a sampling params object.
-    sampling_params = {"temperature": 0.8, "top_p": 0.95}
+    #sampling_params = {"temperature": 0.8, "top_p": 0.95}
+    sampling_params = [
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 10}, 
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 20},
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 30},
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 40},
+    ]
+    tmp_prompts =[
+    "Write a short, neutral self-introduction for a fictional character. Hello, my name is",
+    "Provide a concise factual statement about France’s capital city. The capital of France is",
+    "Explain possible future trends in artificial intelligence. The future of AI is",
+    "Summarize the current president of the United States. The president of the United States is",
+    ]
+    new_sampling_params = {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 100}
 
     # Run the generation tasks concurrently in async mode.
     tasks = []
-    for prompt in prompts:
-        task = asyncio.create_task(inference.generate(prompt, sampling_params))
+    for i, prompt in enumerate(prompts):
+        task = asyncio.create_task(inference.generate(prompt, sampling_params[i]))
         tasks.append(task)
+    
+    new_tasks = []
+    for i, task in enumerate(tasks):
+        #start_time = time.time()
+        result = await task
+        if task.done():
+            #print(f"Task {i} completed successfully.")
+            new_task = asyncio.create_task(inference.generate(tmp_prompts[i], new_sampling_params))
+            new_tasks.append(new_task)
+        else:
+            #print(f"Task {i} failed.")
+            pass
+        #end_time = time.time()
+        #print(f"Prompt: {prompts[i]}\nGenerated text: {result['text']}")
+        #print(f"Time taken: {end_time - start_time:.2f} seconds")
+    
+    for task in new_tasks:
+        result = await task
+    
 
-    # Get and print the result
-    for task in tasks:
-        await task
-        while True:
-            if not task.done():
-                time.sleep(1)
-            else:
-                result = task.result()
-                print(f"Generated text: {result['text']}")
-                break
+
 
 
 if __name__ == "__main__":

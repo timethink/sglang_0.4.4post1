@@ -21,16 +21,22 @@ def main(
         "The future of AI is",
     ]
     # Create a sampling params object.
-    sampling_params = {"temperature": 0.8, "top_p": 0.95}
+    #sampling_params = {"temperature": 0.8, "top_p": 0.95}
+    sampling_params = [
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 10}, 
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 20},
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 30},
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 40},
+    ]
 
     # Create an LLM.
     llm = sgl.Engine(**dataclasses.asdict(server_args))
-
+    
     outputs = llm.generate(prompts, sampling_params)
     # Print the outputs.
-    for prompt, output in zip(prompts, outputs):
-        print("===============================")
-        print(f"Prompt: {prompt}\nGenerated text: {output['text']}")
+    #for prompt, output in zip(prompts, outputs):
+    #    print("===============================")
+    #    print(f"Prompt: {prompt}\nGenerated text: {output['text']}")
 
 
 # The __main__ condition is necessary here because we use "spawn" to create subprocesses
