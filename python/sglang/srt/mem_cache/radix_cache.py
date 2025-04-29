@@ -52,7 +52,10 @@ class TreeNode:
         self.loading = False
         # store the host indices of KV cache
         self.host_value = None
-
+        #add external value and visit counts to the node
+        self.external_value = None
+        self.visit_count = 0
+        self.value_sum = 0
         self.id = TreeNode.counter if id is None else id
         TreeNode.counter += 1
 
@@ -65,8 +68,29 @@ class TreeNode:
         return self.host_value is not None
 
     def __lt__(self, other: "TreeNode"):
-        return self.last_access_time < other.last_access_time
+        if self.external_value is not None and other.external_value is not None:
+            #print(f"self.external_value: {self.external_value}, other.external_value: {other.external_value}\n")
+            return self.external_value < other.external_value
+        elif self.external_value is None and other.external_value is None:
+            return self.last_access_time < other.last_access_time
+        elif self.external_value is not None and other.external_value is None:
+            return False
+        elif self.external_value is None and other.external_value is not None:
+            return True
+        else:
+            print(f"error\n")
+            return self.last_access_time < other.last_access_time
 
+    def update(self, external_value: float) -> None:
+        # init value
+        self.visit_count += 1
+        self.value_sum += external_value
+        self.external_value = self.value_sum / self.visit_count
+ 
+    def update_recursive(self, external_value: float) -> None:
+        self.update(external_value)
+        if self.parent is not None:
+            self.parent.update_recursive(external_value) 
 
 def _key_match_page_size1(key0: List, key1: List):
     i = 0
@@ -125,7 +149,9 @@ class RadixCache(BasePrefixCache):
         self.evictable_size_ = 0
         self.protected_size_ = 0
 
-    def match_prefix(self, key: List[int], **kwargs) -> Tuple[torch.Tensor, int]:
+    def match_prefix(self, key: List[int],
+                     external_value: Optional[float] = None,
+                     **kwargs) -> Tuple[torch.Tensor, int]: 
         """Find the matching prefix from the radix tree.
         Args:
             key: A list of token IDs to find a matching prefix.
@@ -151,6 +177,11 @@ class RadixCache(BasePrefixCache):
             key = key[:page_aligned_len]
 
         value, last_node = self._match_prefix_helper(self.root_node, key)
+        if external_value is not None:
+            #print(f"external_value: {external_value}\n")
+            last_node.external_value = external_value
+            last_node.update_recursive(external_value)
+
         if value:
             value = torch.concat(value)
         else:

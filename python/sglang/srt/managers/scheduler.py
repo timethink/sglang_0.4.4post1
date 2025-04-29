@@ -645,6 +645,7 @@ class Scheduler(SchedulerOutputProcessorMixin):
                 custom_logit_processor=custom_logit_processor,
                 return_hidden_states=recv_req.return_hidden_states,
                 eos_token_ids=self.model_config.hf_eos_token_id,
+                value=recv_req.value,
                 delete_cache = recv_req.delete_cache,
             )
             req.tokenizer = self.tokenizer
@@ -841,7 +842,12 @@ class Scheduler(SchedulerOutputProcessorMixin):
             f"#queue-req: {len(self.waiting_queue)}, "
         )
         logger.info(f)
-
+        #添加
+        #if new-seq == 1, add 1 to a file
+        filename = "/workspace/Super_MARIO/bench_runtime/prefill_bsz1_sync.txt"
+        if len(can_run_list) == 1:
+            with open(filename, "a") as f:
+                f.write(f"{adder.log_input_tokens}\n")
         if self.enable_metrics:
             cache_hit_rate = adder.log_hit_tokens / (
                 adder.log_input_tokens + adder.log_hit_tokens
@@ -1663,7 +1669,7 @@ class Scheduler(SchedulerOutputProcessorMixin):
         self.torch_profiler = None
         self.torch_profiler_output_dir = None
         self.torch_profiler_activities = None
-
+    
         if self.profiler_target_forward_ct:
             self.send_to_tokenizer.send_pyobj(
                 ProfileReqOutput(success=True, message="Succeeded.")

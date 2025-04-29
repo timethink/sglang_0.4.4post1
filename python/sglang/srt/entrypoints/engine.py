@@ -129,6 +129,8 @@ class Engine:
         custom_logit_processor: Optional[Union[List[str], str]] = None,
         return_hidden_states: bool = False,
         stream: bool = False,
+        #add value to use value-policy in tree cache
+        value: Optional[Union[List[float], float]] = None,
         #add delete cache arg, if True, the matching cache of input prompt will be deleted
         delete_cache: Optional[bool] = False,
     ) -> Union[Dict, Iterator[Dict]]:
@@ -154,6 +156,7 @@ class Engine:
             custom_logit_processor=custom_logit_processor,
             return_hidden_states=return_hidden_states,
             stream=stream,
+            value=value,
             delete_cache=delete_cache,
         )
         loop = asyncio.get_event_loop()
@@ -191,6 +194,7 @@ class Engine:
         lora_path: Optional[List[Optional[str]]] = None,
         custom_logit_processor: Optional[Union[List[str], str]] = None,
         stream: bool = False,
+        value: Optional[Union[List[float], float]] = None,
         delete_cache: Optional[bool] = False,
     ) -> Union[Dict, AsyncIterator[Dict]]:
         """
@@ -209,6 +213,7 @@ class Engine:
             lora_path=lora_path,
             stream=stream,
             custom_logit_processor=custom_logit_processor,
+            value=value,
             delete_cache=delete_cache,
         )
         generator = self.tokenizer_manager.generate_request(obj, None)

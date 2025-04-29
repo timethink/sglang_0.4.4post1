@@ -81,6 +81,7 @@ class GenerateReqInput:
     # Whether to return hidden states
     return_hidden_states: bool = False
 
+    value: Optional[Union[List[float], float]] = None
     delete_cache: Optional[bool] = False
 
     def normalize_batch_and_arguments(self):
@@ -248,6 +249,7 @@ class GenerateReqInput:
                 else None
             ),
             return_hidden_states=self.return_hidden_states,
+            value=self.value[i] if self.value is not None else None,
             delete_cache=self.delete_cache 
         )
 
@@ -290,7 +292,8 @@ class TokenizedGenerateReqInput:
 
     # Whether to return hidden states
     return_hidden_states: bool = False
-
+    #wheter to add the value
+    value: float = None
     # Whether to delete the cache
     delete_cache: bool = False
 

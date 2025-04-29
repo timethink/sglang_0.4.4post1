@@ -250,6 +250,7 @@ class Req:
         custom_logit_processor: Optional[str] = None,
         return_hidden_states: bool = False,
         eos_token_ids: Optional[Set[int]] = None,
+        value: float = None,
         delete_cache: bool = False,
     ):
         # Input and output info
@@ -268,6 +269,7 @@ class Req:
         self.session_id = session_id
         self.input_embeds = input_embeds
 
+        self.value = value
         self.delete_cache = delete_cache
 
         # Sampling info
@@ -415,7 +417,7 @@ class Req:
                 )
             else:
                 self.prefix_indices, self.last_node = tree_cache.match_prefix(
-                    rid=self.rid, key=self.adjust_max_prefix_ids()
+                    rid=self.rid, key=self.adjust_max_prefix_ids(), external_value=self.value
                 )
         self.extend_input_len = len(self.fill_ids) - len(self.prefix_indices)
 

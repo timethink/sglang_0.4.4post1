@@ -168,7 +168,7 @@ class SchedulePolicy:
                 )
             else:
                 r.prefix_indices, r.last_node = self.tree_cache.match_prefix(
-                    rid=r.rid, key=prefix_ids
+                    rid=r.rid, key=prefix_ids, external_value=r.value
                 )
 
             # NOTE(sang): This logic is for in-batch prefix caching;
@@ -181,7 +181,7 @@ class SchedulePolicy:
             if len(r.prefix_indices) <= IN_BATCH_PREFIX_CACHING_CHECK_THRESHOLD:
                 in_batch_matching_prefixes, _ = (
                     self.waiting_queue_radix_tree.match_prefix(
-                        rid=r.rid, key=prefix_ids
+                        rid=r.rid, key=prefix_ids, external_value=r.value
                     )
                 )
                 if (

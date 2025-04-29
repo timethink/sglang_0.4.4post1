@@ -29,29 +29,40 @@ async def run_server(server_args):
     inference = InferenceEngine(**dataclasses.asdict(server_args))
 
     # Sample prompts.
+    batch_size = 1
+    #create 1000 different prompts
     prompts = [
-        "Hello, my name is",
-        "The president of the United States is",
-        "The capital of France is",
-        "The future of AI is",
-    ] 
-
+        f"{i} Prompt: Hello, my name is" for i in range(batch_size)
+    ] + [
+        f"{i} Prompt: The president of the United States is" for i in range(batch_size)
+    ] + [
+        f"{i} Prompt: The capital of France is" for i in range(batch_size)
+    ] + [
+        f"{i} Prompt: The future of AI is" for i in range(batch_size)
+    ]
     # Create a sampling params object.
     #sampling_params = {"temperature": 0.8, "top_p": 0.95}
     sampling_params = [
-        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 10}, 
-        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 20},
-        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 30},
-        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 40},
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 10} for _ in range(batch_size)
+    ] + [
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 20} for _ in range(batch_size)
+    ] + [
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 30} for _ in range(batch_size)
+    ] + [
+        {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 40} for _ in range(batch_size)
     ]
-    tmp_prompts =[
-    "Write a short, neutral self-introduction for a fictional character. Hello, my name is",
-    "Provide a concise factual statement about France’s capital city. The capital of France is",
-    "Explain possible future trends in artificial intelligence. The future of AI is",
-    "Summarize the current president of the United States. The president of the United States is",
+    tmp_prompts = [
+        f"{i} Write a short, neutral self-introduction for a fictional character. Hello, my name is" for i in range(batch_size)
+    ] + [
+        f"{i} Provide a concise factual statement about France’s capital city. The capital of France is" for i in range(batch_size)
+    ] + [
+        f"{i} Explain possible future trends in artificial intelligence. The future of AI is" for i in range(batch_size)
+    ] + [
+        f"{i} Summarize the current president of the United States. The president of the United States is" for i in range(batch_size)
     ]
     new_sampling_params = {"temperature": 0.8, "top_p": 0.95, "max_new_tokens": 100}
 
+    start = time.time()
     # Run the generation tasks concurrently in async mode.
     tasks = []
     for i, prompt in enumerate(prompts):
@@ -76,7 +87,8 @@ async def run_server(server_args):
     for task in new_tasks:
         result = await task
     
-
+    end = time.time()
+    print(f"Total time taken: {end - start:.2f} seconds")
 
 
 

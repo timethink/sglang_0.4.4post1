@@ -506,6 +506,12 @@ def get_dataset(args, tokenizer):
         raise ValueError(f"Unknown dataset: {args.dataset_name}")
     return input_requests
 
+#add get_config function
+def get_config(
+    pretrained_model_name_or_path: str,
+):
+    from sglang.srt.hf_transformers_utils import get_config
+    return get_config(pretrained_model_name_or_path, trust_remote_code=True)
 
 ASYNC_REQUEST_FUNCS = {
     "sglang": async_request_sglang_generate,
