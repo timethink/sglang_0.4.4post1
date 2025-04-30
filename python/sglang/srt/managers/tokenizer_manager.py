@@ -962,8 +962,11 @@ class TokenizerManager:
             # Log metrics and dump
             if self.enable_metrics and state.obj.log_metrics:
                 self.collect_metrics(state, recv_obj, i)
+                meta_info["ttft"] = state.first_token_time - state.created_time
+                
             if self.dump_requests_folder and state.finished and state.obj.log_metrics:
                 self.dump_requests(state, out_dict)
+
 
     def convert_logprob_style(
         self,

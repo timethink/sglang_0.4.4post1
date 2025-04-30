@@ -409,7 +409,7 @@ def throughput_test_once(
 
         st = time.perf_counter()
         #这里对比实验时，考虑要不要注释掉current_values
-        outputs = backend.generate(current_prompts, sampling_params=sampling_params, value=current_values)
+        outputs = backend.generate(current_prompts, sampling_params=sampling_params)#value=current_values)
         latency = time.perf_counter() - st
         if profile:
             backend.stop_profile()
@@ -446,6 +446,13 @@ def throughput_test_once(
             o["meta_info"]["cached_tokens"] for o in gen_out
         )
         measurement_results["cache_hit_rate"] = measurement_results["total_cached_tokens"] / measurement_results["total_prompt_tokens"]
+
+        #add average ttft
+        #计算平均ttft
+        measurement_results["average_ttft"] = sum(
+            o["meta_info"]["ttft"] for o in gen_out
+        ) / len(gen_out)
+
 
 
         measurement_results["request_throughput"] = (
@@ -536,15 +543,22 @@ def throughput_test_once(
     cache_hit_rate = []
     MFU = []
     throughput = []
+    TTFT = []
     for measurement_result in measurement_results_total:
         latencys.append(measurement_result["total_latency"])
         cache_hit_rate.append(measurement_result["cache_hit_rate"])
         MFU.append(measurement_result["MFU"])
         throughput.append(measurement_result["total_throughput"])
+        TTFT.append(measurement_result["average_ttft"])
     #将latencys写入文件
     filename = f"{folder}/latencys.json"
     with open(filename, "w") as f:
         f.write(str(latencys))
+        f.write("\n")
+    #将TTFT写入文件
+    filename = f"{folder}/TTFT.json"
+    with open(filename, "w") as f:
+        f.write(str(TTFT))
         f.write("\n")
     #将cache_hit_rate和MFU写入文件
     filename = f"{folder}/cache_hit_rate.json"
@@ -585,6 +599,12 @@ def throughput_test_once(
     plt.ylabel("throughput")
     plt.title("throughput vs step")
     plt.savefig(f"{folder}/throughput.png")
+    plt.figure()
+    plt.plot(TTFT)
+    plt.xlabel("step")
+    plt.ylabel("TTFT")
+    plt.title("TTFT vs step")
+    plt.savefig(f"{folder}/TTFT.png")
 
     return measurement_results_total
 
