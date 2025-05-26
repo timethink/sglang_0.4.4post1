@@ -334,7 +334,7 @@ def throughput_test_once(
 ):
     #如果存在/workspace/Super_MARIO/bench_runtime文件夹，则删除文件夹再创建
     num_reqs = len(reqs)
-    folder = f"/workspace/Super_MARIO/bench_runtime/nofirst_origin_prompts{num_reqs}_in{test_config['random_input_len']}_out{test_config['random_output_len']}_mem{test_config['mem_fraction_static']}_model{test_config['model_name']}"
+    folder = f"/workspace/Super_MARIO/bench_runtime/nofirst_value_prompts{num_reqs}_in{test_config['random_input_len']}_out{test_config['random_output_len']}_mem{test_config['mem_fraction_static']}_model{test_config['model_name']}"
 
     
     if os.path.exists(folder):
@@ -413,7 +413,7 @@ def throughput_test_once(
         """
         st = time.perf_counter()
         #这里对比实验时，考虑要不要注释掉current_values
-        outputs = backend.generate(current_prompts, sampling_params=sampling_params)#value=current_values)
+        outputs = backend.generate(current_prompts, sampling_params=sampling_params,value=current_values)
         latency = time.perf_counter() - st
         if profile:
             backend.stop_profile()

@@ -77,7 +77,7 @@ class SchedulerOutputProcessorMixin:
                     req.check_finished()
 
                     if req.finished():
-                        self.tree_cache.cache_finished_req(req)
+                        self.tree_cache.cache_finished_req(req,is_prefill=True)
                     elif not batch.decoding_reqs or req not in batch.decoding_reqs:
                         # This updates radix so others can match
                         self.tree_cache.cache_unfinished_req(req)

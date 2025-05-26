@@ -86,6 +86,17 @@ class TreeNode:
         self.visit_count += 1
         self.value_sum += external_value
         self.external_value = self.value_sum / self.visit_count
+        #如果有孩子，取孩子的平均值
+        """
+        if len(self.children) > 0:
+            self.external_value = 0
+            for child in self.children.values():
+                if child.external_value is not None:
+                    self.external_value += child.external_value
+            self.external_value /= len(self.children)
+        else:
+            self.external_value = external_value
+        """
  
     def update_recursive(self, external_value: float) -> None:
         self.update(external_value)
@@ -196,7 +207,7 @@ class RadixCache(BasePrefixCache):
             value = [x for x in key]
         return self._insert_helper(self.root_node, key, value)
 
-    def cache_finished_req(self, req: Req):
+    def cache_finished_req(self, req: Req, is_prefill: bool = False):
         """Cache request when it finishes."""
         if self.disable:
             kv_indices = self.req_to_token_pool.req_to_token[
@@ -229,9 +240,14 @@ class RadixCache(BasePrefixCache):
         # Remove req slot release the cache lock
         self.req_to_token_pool.free(req.req_pool_idx)
         self.dec_lock_ref(req.last_node)
+        #if req.value is not None,update the value of last node
+        if req.value is not None and is_prefill:
+            _, new_last_node = self.match_prefix(token_ids, external_value=req.value)
+            #print(f"new_last_node.value: {new_last_node.external_value}\n")
         # if delete_cache is set, we need to delete the cache of the req
         if req.delete_cache:
-            _, new_last_node = self.match_prefix(token_ids)
+            _, new_last_node = self.match_prefix(token_ids, external_value=req.value)
+            #print(f"new_last_node.value: {new_last_node.external_value}\n")
             node = new_last_node
             while node != self.root_node and node.lock_ref == 0 and len(node.children) == 0:
                 self.token_to_kv_pool_allocator.free(node.value)

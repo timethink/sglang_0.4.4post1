@@ -385,7 +385,7 @@ class TokenizerManager:
             session_params = (
                 SessionParams(**obj.session_params) if obj.session_params else None
             )
-
+        
         input_token_num = len(input_ids) if input_ids is not None else 0
         if input_token_num >= self.context_len:
             raise ValueError(
@@ -407,7 +407,7 @@ class TokenizerManager:
                 f"completion. Please reduce the number of tokens in the input "
                 f"messages or the completion to fit within the limit."
             )
-
+        
         # Parse sampling parameters
         sampling_params = SamplingParams(**obj.sampling_params)
         sampling_params.normalize(self.tokenizer)
@@ -523,6 +523,7 @@ class TokenizerManager:
         generators = []
         rids = []
         tmp_cached_tokens = []
+        tmp_ttft = []
         if getattr(obj, "parallel_sample_num", 1) == 1:
             # Send all requests
             for i in range(batch_size):
@@ -547,17 +548,19 @@ class TokenizerManager:
             )
 
             # Cache the common prefix for parallel sampling
+            """
             for i in range(batch_size):
                 tmp_obj = copy.copy(objs[i])
                 tokenized_obj = copy.copy(tokenized_objs[i])
                 tokenized_obj.rid = tmp_obj.regenerate_rid()
                 tokenized_obj.sampling_params = copy.copy(tokenized_obj.sampling_params)
-                tokenized_obj.sampling_params.max_new_tokens = 0
-                tokenized_obj.stream = False
+                #tokenized_obj.sampling_params.max_new_tokens = 0
+                #tokenized_obj.stream = False
                 self._send_one_request(tmp_obj, tokenized_obj, created_time)
-                tmp_output = await self._wait_one_response(tmp_obj, request).__anext__()
-                tmp_cached_tokens.append(tmp_output["meta_info"]["cached_tokens"])
-
+                #tmp_output = await self._wait_one_response(tmp_obj, request).__anext__()
+                #tmp_cached_tokens.append(tmp_output["meta_info"]["cached_tokens"])
+                #tmp_ttft.append(tmp_output["meta_info"]["ttft"])
+            """
             # Expand requests, assign new rids for them, and send them
             for i in range(batch_size):
                 for _ in range(obj.parallel_sample_num):
@@ -572,10 +575,14 @@ class TokenizerManager:
         is_stream = hasattr(obj, "stream") and obj.stream
         if not is_stream:
             outputs = await asyncio.gather(*(gen.__anext__() for gen in generators))
+            """
             if getattr(obj, "parallel_sample_num", 1) > 1:
                 for i in range(batch_size):
                     for j in range(obj.parallel_sample_num):
-                        outputs[i * obj.parallel_sample_num + j]["meta_info"]["cached_tokens"] = tmp_cached_tokens[i]
+                        outputs[i * obj.parallel_sample_num + j]["meta_info"]["first_cached_tokens"] = tmp_cached_tokens[i]
+                        outputs[i * obj.parallel_sample_num + j]["meta_info"]["first_ttft"] = tmp_ttft[i]
+            """
+            
             yield outputs
         else:
             rid_to_index = {rid: i for i, rid in enumerate(rids)}

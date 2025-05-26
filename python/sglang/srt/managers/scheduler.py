@@ -648,6 +648,7 @@ class Scheduler(SchedulerOutputProcessorMixin):
                 value=recv_req.value,
                 delete_cache = recv_req.delete_cache,
             )
+            #print(f"req value is {req.value}")
             req.tokenizer = self.tokenizer
 
             if (
@@ -1024,6 +1025,7 @@ class Scheduler(SchedulerOutputProcessorMixin):
         if running_bs >= self.max_running_requests:
             self.running_batch.batch_is_full = True
             return None
+
 
         if self.enable_hierarchical_cache:
             # check for completion of hierarchical cache activities to release memory
