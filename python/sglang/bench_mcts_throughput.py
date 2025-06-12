@@ -334,7 +334,7 @@ def throughput_test_once(
 ):
     #如果存在/workspace/Super_MARIO/bench_runtime文件夹，则删除文件夹再创建
     num_reqs = len(reqs)
-    folder = f"/workspace/Super_MARIO/bench_runtime/nofirst_origin_prompts{num_reqs}_in{test_config['random_input_len']}_out{test_config['random_output_len']}_mem{test_config['mem_fraction_static']}_model{test_config['model_name']}"
+    folder = f"/workspace/Super_MARIO/bench_runtime/parallel_origin_prompts{num_reqs}_in{test_config['random_input_len']}_out{test_config['random_output_len']}_mem{test_config['mem_fraction_static']}_model{test_config['model_name']}"
 
     
     if os.path.exists(folder):
@@ -368,11 +368,10 @@ def throughput_test_once(
             #添加，尝试注释掉max_new_tokens
             "max_new_tokens": r[2],
             "ignore_eos": ignore_eos,
-            "n": 4,
             **extra_request_body,
         }
         for r in reqs
-    ]
+    ] 
 
     if profile:
         assert (
@@ -383,11 +382,12 @@ def throughput_test_once(
 
     #添加,可能要修改iteraions的值
     iterations = 40
+    n = 4
     roots = []
     for i, single_prompt in enumerate(prompt):
         root = Node(tree_id=i, tag="0", prompt=single_prompt)
         roots.append(root)
-    n = sampling_params[0]["n"]
+
 
     measurement_results_total = []
     for step in range(iterations):
@@ -397,8 +397,11 @@ def throughput_test_once(
         for root in roots:
             node = select_node(root)  # 选择阶段
             current_nodes.append(node)
-            current_prompts.append(node.prompt)
-            current_values.append(ucb(node))
+            #复制n份
+            current_prompts.extend([node.prompt] * n)
+            #复制n份UCB值
+            ucb_value = ucb(node)
+            current_values.extend([ucb_value] * n)
         """
         #将current_prompts写入文件
         filename = f"{folder}/prompts_{step}.json"
@@ -413,7 +416,7 @@ def throughput_test_once(
         """
         st = time.perf_counter()
         #这里对比实验时，考虑要不要注释掉current_values
-        outputs = backend.generate(current_prompts, sampling_params=sampling_params)#value=current_values)
+        outputs = backend.generate(current_prompts, sampling_params=sampling_params*n)#value=current_values)
         latency = time.perf_counter() - st
         if profile:
             backend.stop_profile()
